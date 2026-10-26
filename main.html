@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Locked In website</title>
+
+    <!-- ================================
+         CSS
+    ================================= -->
+
+    <style>
+        /* ================================
+           THEME (default)
+           Colors, font and sizes live here, so the
+           Customize screen can change the whole look
+           by setting these variables.
+        ================================= */
+
+        :root {
+            color-scheme: dark;
+
+            --bg-1: #0f2027;
+            --bg-2: #203a43;
+            --bg-3: #2c5364;
+            --text: #ffffff;
+            --text-soft: #c5dce3;
+            --panel: rgba(255, 255, 255, 0.08);
+            --panel-hover: rgba(255, 255, 255, 0.16);
+            --field: rgba(0, 0, 0, 0.28);
+            --line: rgba(255, 255, 255, 0.4);
+            --bar-bg: rgba(0, 0, 0, 0.35);
+            --accent: #4ade80;
+            --accent-hover: #86efac;
+            --accent-ink: #07351a;
+            --danger: #ef4444;
+            --danger-hover: #f87171;
+
+            --font-family: Arial, Helvetica, sans-serif;
+            --font-size: 16px;
+            --radius: 10px;
+            --bar-h: 3rem;
+            --pad: clamp(0.75rem, 2.5vh, 1.5rem);
+            --gap: clamp(0.5rem, 1.6vw, 1.1rem);
+            --tile: clamp(3.5rem, min(10vw, 15vh), 6.5rem);
+            --max-w: 1100px;
+        }
+
+        /* ================================
+           BASE
+           The wireframes are landscape (wide and
+           short), so the page is one full-height
+           column: top bar, then the active screen.
+        ================================= */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: var(--font-size);
+        }
+
+        body {
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            font-family: var(--font-family);
+            color: var(--text);
+            background: linear-gradient(135deg, var(--bg-1), var(--bg-2), var(--bg-3));
+        }
+
+        h1, h2, h3, h4, p {
+            margin: 0;
+        }
+
+        h1, h2, h3, h4 {
+            line-height: 1.15;
+            text-wrap: balance;
+        }
+
+        p {
+            line-height: 1.4;
+        }
+
+        /* ================================
+           CONTROLS
+           Outlined boxes, like the sketches.
+        ================================= */
+
+        button,
+        input,
+        select {
+            font: inherit;
+            color: inherit;
+        }
+
+        button {
+            cursor: pointer;
+            padding: 0.65rem 1.1rem;
+            font-weight: bold;
+            background: var(--panel);
+            border: 2px solid var(--line);
+            border-radius: var(--radius);
+            transition: background 0.2s, border-color 0.2s, transform 0.2s;
+        }
+
+        button:hover {
+            background: var(--panel-hover);
+        }
+
+        .startSessionButton,
+        .goButton {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--accent-ink);
+        }
+
+        .startSessionButton:hover,
+        .goButton:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+            transform: translateY(-2px);
+        }
+
+        .emergencyExitButton,
+        .exitButton {
+            background: var(--danger);
+            border-color: var(--danger);
+            color: #fff;
+        }
+
+        .emergencyExitButton:hover,
+        .exitButton:hover {
+            background: var(--danger-hover);
+            border-color: var(--danger-hover);
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 0.7rem 0.9rem;
+            background: var(--field);
+            border: 2px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        input::placeholder {
+            color: var(--text-soft);
+            opacity: 0.8;
+        }
+
+        select option {
+            background: var(--bg-2);
+            color: var(--text);
+        }
+
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: var(--accent);
+        }
+
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        /* ================================
+           SCREENS
+           One screen is active at a time:
+           showScreen() in the script adds and
+           removes the "active" class.
+        ================================= */
+
+        .screen {
+            display: none;
+            flex: 1;
+            min-height: 0;
+            overflow: auto;
+            padding: var(--pad) max(var(--pad), calc((100% - var(--max-w)) / 2));
+        }
+
+        .screen.active {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            justify-content: safe center;
+            align-items: center;
+            gap: var(--gap);
+            text-align: center;
+        }
+
+        /* ================================
+           TOP BAR
+           Tabs on the left, Emergency Exit on
+           the right. Hidden until the session starts.
+        ================================= */
+
+        .topBar {
+            order: -1;
+            flex: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-height: var(--bar-h);
+            padding: 0.4rem 0.75rem;
+            background: var(--bar-bg);
+            border-bottom: 2px solid var(--line);
+        }
+
+        /* visibility:hidden still takes up room, so drop the bar completely while it is hidden */
+        .topBar[style*="hidden"] {
+            display: none;
+        }
+
+        .previousPage {
+            order: -2;
+        }
+
+        .unPreviousPage {
+            order: -1;
+        }
+
+        .previousPage,
+        .unPreviousPage,
+        .addButton {
+            flex: none;
+            width: 2.25rem;
+            height: 2.25rem;
+            padding: 0;
+            line-height: 1;
+            border-radius: 50%;
+        }
+
+        .tabsContainer {
+            display: flex;
+            gap: 0.35rem;
+            min-width: 0;
+            margin: 0;
+            padding: 0;
+            list-style: none;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .tabsContainer li {
+            display: flex;
+            align-items: center;
+            flex: 0 1 12rem;
+            min-width: 0;
+            background: var(--panel);
+            border: 2px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        .tabsContainer li.active,
+        .tabsContainer li:has(.tab.active) {
+            background: var(--panel-hover);
+            border-color: var(--text);
+        }
+
+        .tab {
+            flex: 1;
+            min-width: 0;
+            padding: 0.35rem 0.6rem;
+            overflow: hidden;
+            text-align: left;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            background: none;
+            border: none;
+        }
+
+        .closeTabButton {
+            flex: none;
+            margin-right: 0.25rem;
+            padding: 0.1rem 0.5rem;
+            line-height: 1.2;
+            background: none;
+            border: none;
+            border-radius: 50%;
+        }
+
+        .emergencyExitButton {
+            flex: none;
+            margin-left: auto;
+            padding: 0.45rem 0.9rem;
+        }
+
+        /* ================================
+           ICON TILES
+           Square shortcuts to common sites. One
+           scrolling row on the home screen, a
+           5 x 2 grid on the invalid-URL screen.
+        ================================= */
+
+        #commonSitesPopUps {
+            display: flex;
+            justify-content: space-evenly; /* spread between the arrows; scrolls from the left if the tiles don't fit */
+            gap: var(--gap);
+            min-width: 0;
+            margin: 0;
+            padding: 0.4rem;
+            list-style: none;
+            overflow-x: auto;
+            scroll-snap-type: x proximity;
+            scrollbar-width: none;
+        }
+
+        #commonSitesPopUps li {
+            flex: none;
+            scroll-snap-align: start;
+        }
+
+        .popUp {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            width: var(--tile);
+            height: var(--tile);
+            padding: 0.25rem;
+            overflow: hidden;
+            font-size: 0.75rem;
+            line-height: 1.1;
+            border-radius: calc(var(--radius) + 4px);
+        }
+
+        .popUp:hover {
+            transform: translateY(-2px);
+        }
+
+        .popUp img {
+            width: calc(var(--tile) * 0.36);
+            height: calc(var(--tile) * 0.36);
+            object-fit: contain;
+        }
+
+        /* ================================
+           SCREEN 1 - INTRO (parent setup)
+           Big title, then one row:
+           time | exit code | Start Session
+        ================================= */
+
+        #introScreen.active {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr) auto;
+            grid-template-rows: auto auto auto minmax(0.75rem, 2.5rem) auto auto;
+            align-items: stretch;
+            align-content: center;
+            align-content: safe center;
+            column-gap: clamp(0.75rem, 2vw, 1.75rem);
+            row-gap: 0.4rem;
+            text-align: left;
+        }
+
+        #introScreen > h2,
+        #introScreen > h4,
+        #introScreen > h3 {
+            grid-column: 1 / -1;
+            text-align: center;
+        }
+
+        #introScreen > h2 {
+            grid-row: 1;
+            font-size: clamp(2rem, min(7.5vw, 13vh), 5rem);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        #introScreen > h4 {
+            grid-row: 2;
+            font-size: clamp(0.9rem, 1.7vw, 1.2rem);
+            font-weight: normal;
+            color: var(--text-soft);
+        }
+
+        #introScreen > h3 {
+            grid-row: 3;
+            margin-top: 0.6rem;
+            font-size: clamp(1.1rem, 2.6vw, 1.7rem);
+        }
+
+        #introScreen > p {
+            align-self: end;
+            font-size: 0.85rem;
+            color: var(--text-soft);
+        }
+
+        #introScreen > p:nth-of-type(1) {
+            grid-column: 1;
+            grid-row: 5;
+        }
+
+        #introScreen > p:nth-of-type(2) {
+            grid-column: 2;
+            grid-row: 5;
+        }
+
+        #introScreen .timeInput {
+            grid-column: 1;
+            grid-row: 6;
+        }
+
+        #introScreen .emergencyExitCodeInput {
+            grid-column: 2;
+            grid-row: 6;
+        }
+
+        #introScreen .startSessionButton {
+            grid-column: 3;
+            grid-row: 6;
+        }
+
+        /* ================================
+           SCREEN 2 - HOME
+           Welcome, URL bar + Go, a row of site
+           tiles between two arrows, Customize.
+        ================================= */
+
+        .webSiteContainer {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            gap: var(--gap);
+        }
+
+        #homeScreen .webSiteContainer {
+            display: grid;
+            grid-template-columns: 4.25rem minmax(0, 1fr) 4.25rem;
+            flex: none;
+            max-width: 52rem;
+            column-gap: 0.6rem;
+            row-gap: 0.75rem;
+        }
+
+        #homeScreen h2 {
+            grid-column: 1 / -1;
+            font-size: clamp(1.5rem, min(4vw, 7.5vh), 2.75rem);
+        }
+
+        #homeScreen h4 {
+            grid-column: 1 / -1;
+            font-size: clamp(0.9rem, 1.6vw, 1.1rem);
+            font-weight: normal;
+            color: var(--text-soft);
+        }
+
+        #homeScreen .urlInput {
+            grid-column: 1 / 3;
+            align-self: stretch;
+        }
+
+        #homeScreen .goButton {
+            grid-column: 3;
+            align-self: stretch;
+        }
+
+        #scrollLeft,
+        #scrollRight {
+            justify-self: center;
+            width: 2.75rem;
+            height: 2.75rem;
+            padding: 0;
+            font-size: 1.2rem;
+            line-height: 1;
+            border-radius: 50%;
+        }
+
+        #scrollLeft {
+            grid-column: 1;
+        }
+
+        #homeScreen #commonSitesPopUps {
+            grid-column: 2;
+        }
+
+        #scrollRight {
+            grid-column: 3;
+        }
+
+        #homeScreen .customlizeButton {
+            grid-column: 1 / -1;
+            justify-self: center;
+            min-width: 12rem;
+        }
+
+        /* ================================
+           WEBSITE VIEW
+           The iframe fills the whole screen.
+        ================================= */
+
+        #webviewScreen {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        #webviewScreen.active {
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 0;
+            text-align: left;
+        }
+
+        #webviewScreen .webSiteContainer {
+            justify-content: flex-start;
+            align-items: stretch;
+            gap: 0;
+        }
+
+        .webSiteContainer > iframe {
+            flex: 1;
+            min-height: 0;
+            width: 100%;
+            border: 0;
+            background: #fff;
+        }
+
+        /* ================================
+           SCREEN 3 - INVALID URL
+           Title, URL bar + Go, then the tiles
+           as a 5 x 2 grid.
+        ================================= */
+
+        #invalidScreen.active {
+            display: grid;
+            grid-template-columns: minmax(0, 46rem) 5rem;
+            justify-content: center;
+            align-content: center;
+            align-content: safe center;
+            column-gap: 0.6rem;
+            row-gap: 0.7rem;
+        }
+
+        #invalidScreen > h1,
+        #invalidScreen > h2,
+        #invalidScreen > ul,
+        #invalidScreen > .back-button {
+            grid-column: 1 / -1;
+        }
+
+        #invalidScreen > h1 {
+            font-size: clamp(1.75rem, min(5.5vw, 10vh), 3.75rem);
+        }
+
+        #invalidScreen > h2 {
+            font-size: clamp(1rem, 2vw, 1.35rem);
+            font-weight: normal;
+            color: var(--text-soft);
+        }
+
+        #invalidScreen > .urlInput,
+        #invalidScreen > .goButton {
+            align-self: stretch;
+        }
+
+        #invalidScreen > .back-button {
+            justify-self: center;
+        }
+
+        /* wraps, centered, at most 6 tiles a row (the 12 common sites make 2 rows) */
+        #invalidScreen #commonSitesPopUps {
+            flex-wrap: wrap;
+            justify-content: center;
+            justify-self: center;
+            width: min(100%, calc(6 * var(--tile) + 5 * var(--gap) + 0.8rem));
+            overflow: visible;
+        }
+
+        /* ================================
+           SCREEN 4 - EMERGENCY EXIT
+           Big heading, then one row:
+           Go back | exit code | EXIT
+        ================================= */
+
+        #emergencyExitScreen.active {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            align-items: stretch;
+            align-content: center;
+            align-content: safe center;
+            column-gap: 0.75rem;
+            row-gap: clamp(1rem, 5vh, 2.5rem);
+            text-align: left;
+        }
+
+        #emergencyExitScreen > h1 {
+            grid-column: 1 / -1;
+            max-width: 28ch;
+            font-size: clamp(1.5rem, min(4.2vw, 8.5vh), 3.25rem);
+        }
+
+        #emergencyExitScreen > input {
+            font-size: 1.4rem;
+            letter-spacing: 0.35em;
+            text-align: center;
+        }
+
+        #emergencyExitScreen > input::placeholder {
+            font-size: 1rem;
+            letter-spacing: normal;
+        }
+
+        #emergencyExitScreen > .exitButton {
+            padding-inline: 1.75rem;
+        }
+
+        .wrongCode {
+            grid-column: 1 / -1;
+            text-align: center;
+            font-weight: bold;
+            color: var(--danger);
+        }
+
+        /* ================================
+           SCREEN 5 - CUSTOMIZE
+           Label on the left, control on the right:
+           Theme swatches, Font size, Font family.
+        ================================= */
+
+        #customlizeScreen.active {
+            display: grid;
+            grid-template-columns: max-content minmax(0, 36rem);
+            justify-content: center;
+            align-items: center;
+            align-content: center;
+            align-content: safe center;
+            column-gap: clamp(1rem, 3vw, 2rem);
+            row-gap: clamp(0.9rem, 3vh, 1.75rem);
+            text-align: left;
+        }
+
+        #customlizeScreen h1,
+        #customlizeScreen h2 {
+            font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+        }
+
+        #themes {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--gap);
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        #themes li {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.4rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: calc(var(--radius) + 4px);
+        }
+
+        #themes li:hover {
+            border-color: var(--line);
+        }
+
+        #themes li.selected {
+            border-color: var(--accent);
+        }
+
+        /* the sketch's 2 x 2 palette square; a canvas drawn by the script covers it */
+        .themeColorsView {
+            width: var(--tile);
+            height: var(--tile);
+            border: 2px solid var(--line);
+            border-radius: var(--radius);
+            background:
+                linear-gradient(var(--bg-1), var(--bg-1)) top left / 50% 50% no-repeat,
+                linear-gradient(var(--bg-3), var(--bg-3)) top right / 50% 50% no-repeat,
+                linear-gradient(var(--accent), var(--accent)) bottom left / 50% 50% no-repeat,
+                linear-gradient(var(--danger), var(--danger)) bottom right / 50% 50% no-repeat;
+        }
+
+        #themeName,
+        .themeName {
+            font-size: 0.8rem;
+            color: var(--text-soft);
+            text-transform: capitalize;
+        }
+
+        #customlizeScreen select {
+            max-width: 16rem;
+        }
+
+        .saveChangesButton {
+            grid-column: 1 / -1;
+            justify-self: center;
+            min-width: 12rem;
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--accent-ink);
+        }
+
+        .saveChangesButton:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        /* ================================
+           SCREEN 6 - BLOCKED
+           Giant red heading, boxed Go back button.
+        ================================= */
+
+        #blockedScreen .webSiteContainer {
+            flex: none;
+            gap: clamp(1rem, 4vh, 2rem);
+        }
+
+        #blockedScreen h1 {
+            font-size: clamp(2.25rem, min(8vw, 20vh), 6.5rem);
+            line-height: 1.05;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            color: var(--danger);
+        }
+
+        .back-button {
+            padding: 0.6rem 1.5rem;
+        }
+
+        /* ================================
+           SHORT SCREENS
+           A phone held sideways is only about
+           300-400px tall, so tighten everything.
+        ================================= */
+
+        @media (max-height: 520px) {
+
+            :root {
+                --bar-h: 2.5rem;
+                --pad: 0.6rem;
+            }
+
+            .screen.active {
+                gap: 0.4rem;
+            }
+
+            .topBar {
+                padding-block: 0.25rem;
+            }
+
+            button {
+                padding-block: 0.45rem;
+            }
+
+            input[type="text"],
+            input[type="number"],
+            input[type="password"],
+            select {
+                padding-block: 0.5rem;
+            }
+
+            #introScreen > h3 {
+                margin-top: 0.2rem;
+            }
+
+            #introScreen > p {
+                font-size: 0.75rem;
+            }
+
+            #emergencyExitScreen > h1 {
+                max-width: none;
+            }
+
+        }
+
+        /* ================================
+           NARROW SCREENS
+           A phone held upright: everything stacks.
+        ================================= */
+
+        @media (max-width: 640px) {
+
+            .tabsContainer li {
+                flex-basis: 8rem;
+            }
+
+            .emergencyExitButton {
+                padding: 0.35rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            #introScreen.active {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-rows: none;
+            }
+
+            #introScreen > h2,
+            #introScreen > h4,
+            #introScreen > h3,
+            #introScreen > p:nth-of-type(1),
+            #introScreen > p:nth-of-type(2),
+            #introScreen .timeInput,
+            #introScreen .emergencyExitCodeInput,
+            #introScreen .startSessionButton {
+                grid-column: 1;
+                grid-row: auto;
+            }
+
+            #homeScreen .webSiteContainer {
+                grid-template-columns: 3rem minmax(0, 1fr) 3.5rem;
+            }
+
+            #invalidScreen.active {
+                grid-template-columns: minmax(0, 1fr) 4.5rem;
+            }
+
+            #emergencyExitScreen.active {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            #customlizeScreen.active {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+        }
+
+        /* ================================
+           LEGACY
+           Not used by the current HTML (the old
+           focus-timer, app-picker and stats screens).
+           Kept in case those screens come back;
+           safe to delete.
+        ================================= */
+
+        .container {
+            width: 100%;
+            max-width: 550px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 45px 35px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        .subtitle { font-size: 18px; line-height: 1.6; color: #d5e8ee; }
+        .description { color: #c5dce3; }
+
+        .logo { font-size: 70px; }
+        .focus-icon { font-size: 65px; }
+        .success-icon { font-size: 80px; }
+
+        .primary-button { width: 100%; margin-top: 30px; padding: 16px; background: #4ade80; color: #07351a; }
+        .primary-button:hover { background: #86efac; }
+        .danger-button { padding: 13px 25px; margin-top: 25px; background: #ef4444; color: white; }
+        .danger-button:hover { background: #f87171; }
+
+        .stats { display: flex; justify-content: space-between; gap: 10px; margin-top: 35px; }
+        .stat { flex: 1; background: rgba(255, 255, 255, 0.08); padding: 20px 10px; border-radius: 15px; }
+        .stat span { display: block; font-size: 28px; font-weight: bold; color: #4ade80; }
+        .stat small { color: #c5dce3; }
+
+        label { display: block; text-align: left; margin-top: 20px; margin-bottom: 8px; font-weight: bold; }
+
+        .app-list { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .app-option { margin: 0; padding: 15px; background: rgba(255, 255, 255, 0.08); border-radius: 12px; cursor: pointer; transition: 0.2s; }
+        .app-option:hover { background: rgba(255, 255, 255, 0.15); }
+        .app-option input { margin-right: 8px; }
+
+        #timer { font-size: 80px; font-weight: bold; margin: 30px 0; color: #4ade80; letter-spacing: 3px; }
+        .focus-message { color: #c5dce3; }
+
+        .blocked-box { background: rgba(0, 0, 0, 0.2); border-radius: 15px; padding: 20px; }
+        .blocked-box h2 { margin-top: 0; }
+        #blockedApps { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+        .blocked-app { background: #ef4444; padding: 8px 14px; border-radius: 20px; font-size: 14px; }
+
+        .points-earned { font-size: 25px; font-weight: bold; color: #4ade80; margin: 25px; }
+
+        @media (max-width: 500px) {
+            #timer { font-size: 60px; }
+            .app-list { grid-template-columns: 1fr; }
+            .stats { flex-direction: column; }
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <!-- =================================
+         INTRO SCREEN
+    ================================== -->
+<div id="introScreen" class="screen active">
+    <h2 class="introLabelOne">Locked In Browser</h2>
+    <h4 class="introLabelOne">The browser that blocks out distractions</h4>
+    <h3 class="introLabelOne">Before you start a distraction-free section</h3>
+    <p>Set the time you wanted the lock in browser active</p>
+    <input type="number" class="timeInput" placeholder="Enter time in minutes">
+    <p>Go to your parent/guardian and let them type out an emergency exit code(ask your parents for the code if you want to exit this browser as an emergency) without you looking, and tell them to start the session for you.</p>
+    <input type="password" class="emergencyExitCodeInput" placeholder="Enter emergency exit code">
+    <button class="startSessionButton">Start Session</button>
+</div>
+
+
+
+
+   <!-- top bar appears after the session starts stays there until session emergency exit buttons is clicked-->
+     <div class="topBar" style="visibility: hidden;">
+          <ul class="tabsContainer">
+            <li><button class="tab">TabName</button> <button class="closeTabButton">x</button></li>
+         </ul>
+          <button class="addButton">+</button>
+          <button class="previousPage">←</button>
+          <button class="unPreviousPage">→</button>
+          <button class="emergencyExitButton">Emergency Exit</button>
+       </div> <!-- class="topBar" -->
+
+
+
+
+       <!-- below are the screens that appear below the top bar    -->
+        
+    <!-- =================================
+         HOME SCREEN
+    ================================== -->
+
+    <div id="homeScreen" class="screen">
+        <div class="webSiteContainer">
+            <h2>Welcome to Locked In Browser</h2>
+            <h4>Enter a URL to start for completing your task</h4>
+              <input type="text" class="urlInput" placeholder="enter URL here">
+            <button class="goButton">Go</button>
+            <h4>or choose these common unblocked sites to do your work</h4>
+            <button id="scrollLeft">←</button>
+            <ul id="commonSitesPopUps">
+                <li><button id="commoSitePopUp1" class="popUp"></button></li>
+            </ul>   
+         <button id="scrollRight">→</button>
+
+
+            <button class="customlizeButton">Customize</button>
+         </div>
+         
+       
+          
+
+    </div>
+
+
+    <!-- =================================
+     Website Screen
+    ================================== -->
+    <div id="webviewScreen" class="screen">
+     
+
+         <div class="webSiteContainer">
+         </div>
+    </div>
+
+    <!--====================================
+    Blocked Screen
+    ================================== -->
+    <div id="blockedScreen" class="screen">
+
+         
+       <div class="webSiteContainer">
+        <h1>This website is BLOCKED</h1>
+            <button class="back-button" onclick="showScreen('homeScreen')">← Back</button>
+    </div>
+           
+
+    </div>
+
+    <!-- =================================
+    INVALID SCREEN
+    ================================== -->
+<div id="invalidScreen" class="screen">
+    <h1>Invalid URL or unsafe URL</h1>
+    <h2>Type a new URL</h2>
+     <input type="text" class="urlInput" placeholder="enter URL here">
+            <button class="goButton">Go</button>
+    <h2>or choose these common unblocked sites to finish your work</h2>
+    <ul id="commonSitesPopUps">
+        <li><button id="commoSitePopUp1"class="popUp" ></button></li>
+    </ul>
+    <button class="back-button" onclick="showScreen('homeScreen')">← Back</button>
+</div>
+
+
+ <!-- =================================
+    CUSTOMIZE SCREEN
+    ================================== -->
+<div id="customlizeScreen" class="screen">
+    <h1>Theme:</h1>
+    <ul id="themes">
+        <li><canvas class="themeColorsView"></canvas><p id="themeName">default</p></li>
+    </ul>    
+  <h2>Font size:</h2> <input type="range" id="fontSizeSlider" min="12" max="24" value="16">
+  <h2>Font family:</h2>
+  <select id="fontFamilyDropdown">
+      <option value="Arial">Arial</option>
+      <option value="Times New Roman">Times New Roman</option>
+      <option value="Courier New">Courier New</option>
+       <option value="Comic Sans MS">Comic Sans MS</option>
+  </select>
+  <button class="saveChangesButton">Save changes</button>
+</div>
+
+
+
+<!--=======================================
+EMERGENCY EXIT SCREEN
+===================================-->
+<div id="emergencyExitScreen" class="screen">
+    <h1>Ask your parents/guardian for the emergency exit code to exit this browser</h1>
+    <button id="goBack" onclick="showScreen('homeScreen')">Go back</button><!--this button also shows the top bar-->
+    <input type="password" class="emergencyExitCodeInput" placeholder="Enter emergency exit code">
+    <button class="exitButton">EXIT</button>
+    <p class="wrongCode" hidden>Wrong code</p>
+</div>
+    
+    
+
+    <!-- =================================
+         JAVASCRIPT
+    ================================== -->
+
+    <script>
+
+        // =================================
+        // SETTINGS
+        // =================================
+
+        // Java (proxyServer.java) is the middleman for everything:
+        // the page and every file it loads come through this server
+        const JAVA = "http://localhost:8080";
+
+        // The row of buttons on the home and invalid screens.
+        // These are also the only sites allowed during a session.
+        const COMMON_SITES = [
+            { name: "Google Docs", url: "https://docs.google.com" },
+            { name: "Google Classroom", url: "https://classroom.google.com" },
+            { name: "Wikipedia", url: "https://www.wikipedia.org" },
+            { name: "Khan Academy", url: "https://www.khanacademy.org" },
+            { name: "Desmos", url: "https://www.desmos.com" },
+            { name: "Quizlet", url: "https://quizlet.com" },
+            { name: "Britannica", url: "https://www.britannica.com" },
+            { name: "Wolfram Alpha", url: "https://www.wolframalpha.com" },
+            { name: "Duolingo", url: "https://www.duolingo.com" },
+            { name: "Canva", url: "https://www.canva.com" },
+            { name: "Code.org", url: "https://code.org" },
+            { name: "GitHub", url: "https://github.com" }
+        ];
+
+        // Themes for the Customize screen. Each one changes the CSS variables in :root
+        // ("default" changes nothing).
+        const THEMES = {
+            default: {},
+            dark: {
+                "--bg-1": "#0b0b0f", "--bg-2": "#18181b", "--bg-3": "#27272a",
+                "--accent": "#60a5fa", "--accent-hover": "#93c5fd", "--accent-ink": "#0b1b33"
+            },
+            light: {
+                "color-scheme": "light",
+                "--bg-1": "#f8fafc", "--bg-2": "#e2e8f0", "--bg-3": "#cbd5e1",
+                "--text": "#0f172a", "--text-soft": "#334155",
+                "--panel": "rgba(0, 0, 0, 0.05)", "--panel-hover": "rgba(0, 0, 0, 0.1)",
+                "--field": "rgba(255, 255, 255, 0.7)", "--line": "rgba(15, 23, 42, 0.35)",
+                "--bar-bg": "rgba(255, 255, 255, 0.6)",
+                "--accent": "#16a34a", "--accent-hover": "#22c55e", "--accent-ink": "#ffffff"
+            },
+            sunset: {
+                "--bg-1": "#2d1b3d", "--bg-2": "#6b2d5c", "--bg-3": "#c2410c",
+                "--text-soft": "#fde3d0",
+                "--accent": "#fbbf24", "--accent-hover": "#fcd34d", "--accent-ink": "#3b2300"
+            },
+            forest: {
+                "--bg-1": "#0b1f14", "--bg-2": "#14532d", "--bg-3": "#3f6212",
+                "--text-soft": "#d9f99d",
+                "--accent": "#a3e635", "--accent-hover": "#bef264", "--accent-ink": "#1a2e05"
+            }
+        };
+
+        // Which screen shows each state a tab can be in
+        const SCREEN_FOR_STATE = {
+            home: "homeScreen",
+            web: "webviewScreen",
+            blocked: "blockedScreen",
+            invalid: "invalidScreen"
+        };
+
+        // =================================
+        // VARIABLES
+        // =================================
+
+        let timeRemaining = 0;     // seconds left in the session
+        let timerInterval = null;
+        let exitCode = "";         // the parent's emergency exit code
+
+        // Each tab: { li, nameButton, state, frame, history, index, moving }
+        //   state   "home", "web", "blocked" or "invalid"
+        //   frame   the tab's own iframe (made the first time it opens a website)
+        //   history the pages it opened, index = the one showing now (for ← and →)
+        let tabs = [];
+        let activeTab = null;
+
+        let settings = { theme: "default", fontSize: 16, fontFamily: "Arial" };
+
+        const topBar = document.querySelector(".topBar");
+        const tabsContainer = document.querySelector(".tabsContainer");
+        const webContainer = document.querySelector("#webviewScreen .webSiteContainer");
+
+        // =================================
+        // SCREEN MANAGEMENT
+        // =================================
+
+        function showScreen(screenId) {
+            document.querySelectorAll(".screen").forEach(function(screen) {
+                screen.classList.remove("active");
+            });
+            document.getElementById(screenId).classList.add("active");
+        }
+
+        function showTopBar(show) {
+            if (show) {
+                topBar.style.visibility = "visible";
+            } else {
+                topBar.style.visibility = "hidden";
+            }
+        }
+
+        // "Put the main screen at the center": shows whatever the active tab is on.
+        // Only the active tab's iframe is visible, so the others keep their page.
+        function showActiveTab() {
+            tabs.forEach(function(tab) {
+                tab.li.classList.toggle("active", tab === activeTab);
+                if (tab.frame) {
+                    tab.frame.hidden = tab !== activeTab;
+                }
+            });
+            showScreen(SCREEN_FOR_STATE[activeTab.state]);
+        }
+
+        // =================================
+        // START SESSION (parent screen)
+        // =================================
+
+        document.querySelector(".startSessionButton").addEventListener("click", startSession);
+
+        function startSession() {
+            const minutes = Number(document.querySelector("#introScreen .timeInput").value);
+            const codeInput = document.querySelector("#introScreen .emergencyExitCodeInput");
+
+            if (!(minutes > 0)) {
+                alert("Enter how many minutes the session should last.");
+                return;
+            }
+            if (codeInput.value === "") {
+                alert("Enter an emergency exit code.");
+                return;
+            }
+
+            exitCode = codeInput.value;
+            codeInput.value = "";
+
+            // Java only lets pages from the common sites open while the session runs
+            fetch(JAVA + "/block", { method: "POST", body: "allow:" + allowedDomains().join(",") })
+                .catch(function() {
+                    alert("The Java server is not running, so sites can't be loaded.");
+                });
+
+            fillCommonSites();
+
+            // Open the bar at the top with one tab on the home screen
+            tabsContainer.replaceChildren();
+            tabs = [];
+            showTopBar(true);
+            addTab();
+
+            // Repeat forever: count down, and exit when the time is up
+            timeRemaining = Math.round(minutes * 60);
+            updateTimer();
+            timerInterval = setInterval(function() {
+                timeRemaining--;
+                updateTimer();
+                if (timeRemaining <= 0) {
+                    exitBrowser(true);
+                }
+            }, 1000);
+        }
+
+        // Shows the time left in the window's title, like "Locked In - 24:59 left"
+        function updateTimer() {
+            const minutes = Math.floor(timeRemaining / 60);
+            let seconds = String(timeRemaining % 60);
+            if (seconds.length < 2) {
+                seconds = "0" + seconds;
+            }
+            document.title = "Locked In - " + minutes + ":" + seconds + " left";
+        }
+
+        // "docs.google.com" -> "google.com", so a site's login and other pages are allowed too
+        function allowedDomains() {
+            const domains = [];
+            COMMON_SITES.forEach(function(site) {
+                const parts = new URL(site.url).hostname.split(".");
+                const domain = parts.slice(-2).join(".");
+                if (domains.indexOf(domain) === -1) {
+                    domains.push(domain);
+                }
+            });
+            return domains;
+        }
+
+        // =================================
+        // COMMON SITES (home and invalid screens)
+        // =================================
+
+        // Fills both lists with a button for each common site (its icon and name)
+        function fillCommonSites() {
+            document.querySelectorAll("#commonSitesPopUps").forEach(function(list) {
+                list.replaceChildren();
+                COMMON_SITES.forEach(function(site) {
+                    const button = document.createElement("button");
+                    button.className = "popUp";
+                    button.title = site.name;
+
+                    // The icon comes through Java like everything else
+                    const icon = document.createElement("img");
+                    icon.alt = "";
+                    icon.src = JAVA + "/p/https/" + new URL(site.url).hostname + "/favicon.ico";
+                    icon.onerror = function() {
+                        icon.remove();
+                    };
+
+                    const name = document.createElement("span");
+                    name.textContent = site.name;
+
+                    button.append(icon, name);
+                    button.addEventListener("click", function() {
+                        askJavaToGetWebsite(site.url);
+                    });
+
+                    const li = document.createElement("li");
+                    li.append(button);
+                    list.append(li);
+                });
+            });
+        }
+
+        // The arrows scroll the row of sites on the home screen
+        const homeSites = document.querySelector("#homeScreen #commonSitesPopUps");
+
+        document.getElementById("scrollLeft").addEventListener("click", function() {
+            homeSites.scrollBy({ left: -homeSites.clientWidth * 0.8, behavior: "smooth" });
+        });
+
+        document.getElementById("scrollRight").addEventListener("click", function() {
+            homeSites.scrollBy({ left: homeSites.clientWidth * 0.8, behavior: "smooth" });
+        });
+
+        // =================================
+        // TABS (+ and x buttons)
+        // =================================
+
+        document.querySelector(".addButton").addEventListener("click", addTab);
+
+        // Adds a new tab on the right of all tabs and shows its home screen
+        function addTab() {
+            const li = document.createElement("li");
+
+            const nameButton = document.createElement("button");
+            nameButton.className = "tab";
+            nameButton.textContent = "New tab";
+
+            const closeButton = document.createElement("button");
+            closeButton.className = "closeTabButton";
+            closeButton.textContent = "x";
+
+            li.append(nameButton, " ", closeButton);
+            tabsContainer.append(li);
+
+            const tab = {
+                li: li,
+                nameButton: nameButton,
+                state: "home",
+                frame: null,
+                history: [],
+                index: -1,
+                moving: false
+            };
+            tabs.push(tab);
+
+            nameButton.addEventListener("click", function() {
+                activeTab = tab;
+                showActiveTab();
+            });
+            closeButton.addEventListener("click", function() {
+                closeTab(tab);
+            });
+
+            activeTab = tab;
+            showActiveTab();
+            li.scrollIntoView({ inline: "end" });
+        }
+
+        // Closes a tab. If there is a tab on its right that one is shown, otherwise the one on its left.
+        function closeTab(tab) {
+            const place = tabs.indexOf(tab);
+            tab.li.remove();
+            if (tab.frame) {
+                tab.frame.remove();
+            }
+            tabs.splice(place, 1);
+
+            // There is always at least one tab
+            if (tabs.length === 0) {
+                addTab();
+                return;
+            }
+
+            if (tab === activeTab) {
+                if (place < tabs.length) {
+                    activeTab = tabs[place];      // the tab that was on its right
+                } else {
+                    activeTab = tabs[place - 1];  // it was the last one: the tab on its left
+                }
+            }
+            showActiveTab();
+        }
+
+        function setTabName(tab, name) {
+            if (name.length > 20) {
+                name = name.slice(0, 20) + "…";
+            }
+            tab.nameButton.textContent = name;
+            tab.nameButton.title = name;
+        }
+
+        // =================================
+        // GO TO URL (search button, Enter key, common site buttons)
+        // =================================
+
+        document.querySelectorAll(".goButton").forEach(function(button) {
+            const input = button.parentElement.querySelector(".urlInput");
+
+            button.addEventListener("click", function() {
+                askJavaToGetWebsite(input.value.trim());
+            });
+            input.addEventListener("keydown", function(event) {
+                if (event.key === "Enter") {
+                    button.click();
+                }
+            });
+        });
+
+        // Asks Java if the url is valid and allowed, then shows it or the matching error screen
+        async function askJavaToGetWebsite(url) {
+            const tab = activeTab; // the user may switch tabs while Java answers
+
+            // A new URL: Java deletes the pages it stored for the last site
+            clearStoredPages();
+
+            let verdict = "invalid";
+            try {
+                // "example.com" -> "https://example.com/"
+                if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(url)) {
+                    url = "https://" + url;
+                }
+                const response = await fetch(JAVA + "/check?url=" + encodeURIComponent(url));
+                verdict = (await response.text()).trim();
+            } catch (error) {
+                verdict = "invalid";
+            }
+
+            if (verdict === "ok") {
+                displayWebsite(tab, url);
+                return;
+            }
+            if (verdict === "blocked") {
+                tab.state = "blocked";
+                setTabName(tab, "Blocked");
+            } else {
+                tab.state = "invalid";
+                setTabName(tab, "Invalid URL");
+            }
+            if (tab === activeTab) {
+                showActiveTab();
+            }
+        }
+
+        // Shows the site in the tab's own iframe. The iframe loads it from Java
+        // (/p/<scheme>/<host>/<path>), so its images, audio, css, js and API
+        // calls all go through Java too.
+        function displayWebsite(tab, url) {
+            const u = new URL(url);
+
+            if (!tab.frame) {
+                tab.frame = document.createElement("iframe");
+                // The site runs on Java's origin, not this page's, so it cannot
+                // read our localStorage or DOM
+                tab.frame.setAttribute("sandbox", "allow-scripts allow-forms allow-same-origin");
+                webContainer.append(tab.frame);
+            }
+            tab.frame.src =
+                JAVA + "/p/" + u.protocol.slice(0, -1) + "/" +
+                u.host + u.pathname + u.search + u.hash;
+
+            tab.state = "web";
+            setTabName(tab, u.hostname);
+            if (tab === activeTab) {
+                showActiveTab();
+            }
+        }
+
+        // Every page that opens in a tab tells us its address and title (Java's SHIM sends it)
+        window.addEventListener("message", function(event) {
+            const data = event.data;
+            if (!data || data.cac !== "page" || typeof data.url !== "string") return;
+
+            let tab = null;
+            tabs.forEach(function(t) {
+                if (t.frame && t.frame.contentWindow === event.source) {
+                    tab = t;
+                }
+            });
+            if (!tab) return;
+
+            if (typeof data.title === "string" && data.title.trim() !== "") {
+                setTabName(tab, data.title.trim());
+            }
+
+            if (tab.moving) {
+                // ← or → opened this page: it is already in the history
+                tab.history[tab.index] = data.url;
+                tab.moving = false;
+            } else if (data.url !== tab.history[tab.index]) {
+                // A new page: forget the pages after this one, like a normal browser
+                tab.history = tab.history.slice(0, tab.index + 1);
+                tab.history.push(data.url);
+                tab.index = tab.history.length - 1;
+            }
+        });
+
+        // =================================
+        // ← AND → BUTTONS
+        // =================================
+
+        document.querySelector(".previousPage").addEventListener("click", function() {
+            const tab = activeTab;
+            if (!tab) return;
+
+            // On the home, blocked or invalid screen, ← goes back to the tab's website
+            if (tab.state !== "web") {
+                if (tab.frame && tab.history.length > 0) {
+                    tab.state = "web";
+                    showActiveTab();
+                }
+                return;
+            }
+            if (tab.index > 0) {
+                tab.index--;
+                tab.moving = true;
+                tab.frame.src = tab.history[tab.index];
+            } else {
+                // Before the first page is the tab's home screen
+                tab.state = "home";
+                setTabName(tab, "New tab");
+                showActiveTab();
+            }
+        });
+
+        document.querySelector(".unPreviousPage").addEventListener("click", function() {
+            const tab = activeTab;
+            if (!tab) return;
+
+            if (tab.state !== "web") {
+                if (tab.frame && tab.history.length > 0) {
+                    tab.state = "web";
+                    showActiveTab();
+                }
+                return;
+            }
+            if (tab.index < tab.history.length - 1) {
+                tab.index++;
+                tab.moving = true;
+                tab.frame.src = tab.history[tab.index];
+            }
+        });
+
+        // =================================
+        // BACK BUTTONS (blocked and invalid screens)
+        // =================================
+
+        // Their onclick shows the home screen; this also puts the tab back on its home screen
+        document.querySelectorAll(".back-button").forEach(function(button) {
+            button.addEventListener("click", function() {
+                if (!activeTab) return;
+                activeTab.state = "home";
+                setTabName(activeTab, "New tab");
+                showActiveTab();
+            });
+        });
+
+        // =================================
+        // CUSTOMIZE
+        // =================================
+
+        let chosenTheme = settings.theme;
+        const themeList = document.getElementById("themes");
+
+        // One swatch for each theme. Its colors come from the theme's variables.
+        function fillThemes() {
+            themeList.replaceChildren();
+            Object.keys(THEMES).forEach(function(name) {
+                const li = document.createElement("li");
+                li.dataset.theme = name;
+
+                const swatch = document.createElement("canvas");
+                swatch.className = "themeColorsView";
+
+                const label = document.createElement("p");
+                label.className = "themeName";
+                label.textContent = name;
+
+                li.append(swatch, label);
+                Object.keys(THEMES[name]).forEach(function(variable) {
+                    li.style.setProperty(variable, THEMES[name][variable]);
+                });
+
+                li.addEventListener("click", function() {
+                    chosenTheme = name;
+                    markChosenTheme();
+                });
+                themeList.append(li);
+            });
+        }
+
+        function markChosenTheme() {
+            themeList.querySelectorAll("li").forEach(function(li) {
+                li.classList.toggle("selected", li.dataset.theme === chosenTheme);
+            });
+        }
+
+        document.querySelector(".customlizeButton").addEventListener("click", function() {
+            chosenTheme = settings.theme;
+            markChosenTheme();
+            document.getElementById("fontSizeSlider").value = settings.fontSize;
+            document.getElementById("fontFamilyDropdown").value = settings.fontFamily;
+            showScreen("customlizeScreen");
+        });
+
+        // Save changes: change the look of the browser, then go back to the main screen
+        document.querySelector(".saveChangesButton").addEventListener("click", function() {
+            settings = {
+                theme: chosenTheme,
+                fontSize: Number(document.getElementById("fontSizeSlider").value),
+                fontFamily: document.getElementById("fontFamilyDropdown").value
+            };
+            applySettings();
+            try {
+                localStorage.setItem("cacSettings", JSON.stringify(settings));
+            } catch (error) {
+                // storage is blocked: the settings last until the page closes
+            }
+            if (activeTab) {
+                showActiveTab();
+            } else {
+                showScreen("introScreen");
+            }
+        });
+
+        function applySettings() {
+            const root = document.documentElement.style;
+
+            // Undo every theme, then use the chosen one
+            Object.keys(THEMES).forEach(function(name) {
+                Object.keys(THEMES[name]).forEach(function(variable) {
+                    root.removeProperty(variable);
+                });
+            });
+            const theme = THEMES[settings.theme] || {};
+            Object.keys(theme).forEach(function(variable) {
+                root.setProperty(variable, theme[variable]);
+            });
+
+            root.setProperty("--font-size", settings.fontSize + "px");
+            root.setProperty("--font-family", "\"" + settings.fontFamily + "\", Arial, sans-serif");
+        }
+
+        // Settings saved last time
+        try {
+            const saved = JSON.parse(localStorage.getItem("cacSettings"));
+            if (saved && THEMES[saved.theme]) {
+                settings = saved;
+            }
+        } catch (error) {
+            // nothing saved, or storage is blocked
+        }
+        fillThemes();
+        applySettings();
+
+        // =================================
+        // EMERGENCY EXIT
+        // =================================
+
+        const exitScreenCode = document.querySelector("#emergencyExitScreen .emergencyExitCodeInput");
+        const wrongCode = document.querySelector(".wrongCode");
+
+        document.querySelector(".emergencyExitButton").addEventListener("click", function() {
+            exitScreenCode.value = "";
+            wrongCode.hidden = true;
+            showTopBar(false);
+            showScreen("emergencyExitScreen");
+        });
+
+        // Go back: its onclick shows the home screen; this shows the top bar and the tab again
+        document.getElementById("goBack").addEventListener("click", function() {
+            showTopBar(true);
+            showActiveTab();
+        });
+
+        document.querySelector(".exitButton").addEventListener("click", function() {
+            if (exitScreenCode.value === exitCode) {
+                exitBrowser(false);
+            } else {
+                wrongCode.hidden = false;
+                exitScreenCode.value = "";
+            }
+        });
+
+        exitScreenCode.addEventListener("keydown", function(event) {
+            if (event.key === "Enter") {
+                document.querySelector(".exitButton").click();
+            }
+        });
+
+        // Ends the session. timeUp: the timer reached 0, so the Java server is stopped too.
+        function exitBrowser(timeUp) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+
+            // Beacons are still sent while the page closes
+            clearStoredPages();
+            navigator.sendBeacon(JAVA + "/block", "");   // empty list: no more limits
+            if (timeUp) {
+                navigator.sendBeacon(JAVA + "/shutdown");
+            }
+
+            window.close();
+
+            // Browsers usually don't let a page close its own tab, so end the session here instead
+            tabs.forEach(function(tab) {
+                if (tab.frame) {
+                    tab.frame.remove();
+                }
+            });
+            tabs = [];
+            activeTab = null;
+            exitCode = "";
+            tabsContainer.replaceChildren();
+            showTopBar(false);
+
+            document.title = "Locked In website";
+            document.querySelector("#introScreen h3").textContent =
+                "Session ended. You can close this browser now.";
+            showScreen("introScreen");
+        }
+
+        // =================================
+        // STORED PAGES
+        // =================================
+
+        // Tells Java to delete every connected page it stored ahead of time
+        function clearStoredPages() {
+            navigator.sendBeacon(JAVA + "/__cac/clear");
+        }
+
+        // Closing the browser (or this tab) deletes them too
+        window.addEventListener("pagehide", clearStoredPages);
+
+        // The common sites are listed even before a session starts
+        fillCommonSites();
+
+    </script>
+
+</body>
+
+</html>
