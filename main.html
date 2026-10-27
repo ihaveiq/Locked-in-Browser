@@ -40,6 +40,8 @@
             --accent-ink: #07351a;
             --danger: #ef4444;
             --danger-hover: #f87171;
+            --ok: #4ade80;
+            --ok-hover: #86efac;
 
             --font-family: Arial, Helvetica, sans-serif;
             --font-size: 16px;
@@ -230,12 +232,14 @@
             order: -2;
         }
 
-        .unPreviousPage {
+        .unPreviousPage,
+        .refreshButton {
             order: -1;
         }
 
         .previousPage,
         .unPreviousPage,
+        .refreshButton,
         .addButton {
             flex: none;
             width: 2.25rem;
@@ -260,14 +264,13 @@
             display: flex;
             align-items: center;
             flex: 0 1 12rem;
-            min-width: 0;
+            min-width: 5rem;
             background: var(--panel);
             border: 2px solid var(--line);
             border-radius: var(--radius);
         }
 
-        .tabsContainer li.active,
-        .tabsContainer li:has(.tab.active) {
+        .tabsContainer li.active {
             background: var(--panel-hover);
             border-color: var(--text);
         }
@@ -317,6 +320,7 @@
             list-style: none;
             overflow-x: auto;
             scroll-snap-type: x proximity;
+            scroll-padding-inline: 0.4rem;
             scrollbar-width: none;
         }
 
@@ -333,11 +337,16 @@
             gap: 0.25rem;
             width: var(--tile);
             height: var(--tile);
-            padding: 0.25rem;
+            padding: 0.15rem;
             overflow: hidden;
-            font-size: 0.75rem;
+            font-size: clamp(0.55rem, calc(var(--tile) * 0.115), 0.75rem);
             line-height: 1.1;
             border-radius: calc(var(--radius) + 4px);
+        }
+
+        .popUp span {
+            max-width: 100%;
+            overflow-wrap: anywhere;
         }
 
         .popUp:hover {
@@ -443,6 +452,11 @@
             gap: var(--gap);
         }
 
+        /* one row of tiles, so they can be bigger than on the invalid screen */
+        #homeScreen {
+            --tile: clamp(3.5rem, min(10vw, 22vh), 7rem);
+        }
+
         #homeScreen .webSiteContainer {
             display: grid;
             grid-template-columns: 4.25rem minmax(0, 1fr) 4.25rem;
@@ -504,6 +518,45 @@
         }
 
         /* ================================
+           COOKIE BUTTON
+           Round button in the top right corner of the
+           home and invalid screens. Off: the same color
+           as the page. On: green (every theme, not the accent).
+        ================================= */
+
+        #homeScreen,
+        #invalidScreen {
+            position: relative;
+        }
+
+        .cookieButton {
+            position: absolute;
+            top: var(--pad);
+            right: var(--pad);
+            width: 2.75rem;
+            height: 2.75rem;
+            padding: 0;
+            font-size: 1.35rem;
+            line-height: 1;
+            background: var(--bg-2);
+            border-radius: 50%;
+        }
+
+        .cookieButton:hover {
+            background: color-mix(in srgb, var(--bg-2) 85%, var(--text));
+        }
+
+        .cookieButton.on {
+            background: var(--ok);
+            border-color: var(--ok);
+        }
+
+        .cookieButton.on:hover {
+            background: var(--ok-hover);
+            border-color: var(--ok-hover);
+        }
+
+        /* ================================
            WEBSITE VIEW
            The iframe fills the whole screen.
         ================================= */
@@ -521,6 +574,7 @@
         }
 
         #webviewScreen .webSiteContainer {
+            position: relative;
             justify-content: flex-start;
             align-items: stretch;
             gap: 0;
@@ -534,11 +588,55 @@
             background: #fff;
         }
 
+        /* Covers the website while it loads, so nothing on it can be clicked */
+        .loadingCover {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.45);
+            cursor: progress;
+        }
+
+        .loadingCover[hidden] {
+            display: none;
+        }
+
+        .loadingBox {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.9rem 1.4rem;
+            font-weight: bold;
+            background: var(--bg-2);
+            border: 2px solid var(--line);
+            border-radius: var(--radius);
+        }
+
+        .spinner {
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 3px solid var(--line);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
         /* ================================
            SCREEN 3 - INVALID URL
            Title, URL bar + Go, then the tiles
            as a 5 x 2 grid.
         ================================= */
+
+        /* two rows of tiles, so they are a bit smaller than on the home screen */
+        #invalidScreen {
+            --tile: clamp(3.5rem, min(10vw, 12.5vh), 6.5rem);
+        }
 
         #invalidScreen.active {
             display: grid;
@@ -638,7 +736,7 @@
 
         #customlizeScreen.active {
             display: grid;
-            grid-template-columns: max-content minmax(0, 36rem);
+            grid-template-columns: max-content minmax(0, 40rem);
             justify-content: center;
             align-items: center;
             align-content: center;
@@ -674,7 +772,7 @@
         }
 
         #themes li:hover {
-            border-color: var(--line);
+            border-color: color-mix(in srgb, currentColor 45%, transparent);
         }
 
         #themes li.selected {
@@ -683,8 +781,9 @@
 
         /* the sketch's 2 x 2 palette square; a canvas drawn by the script covers it */
         .themeColorsView {
-            width: var(--tile);
-            height: var(--tile);
+            --size: clamp(3.25rem, min(8vw, 13vh), 5.5rem);
+            width: var(--size);
+            height: var(--size);
             border: 2px solid var(--line);
             border-radius: var(--radius);
             background:
@@ -694,10 +793,12 @@
                 linear-gradient(var(--danger), var(--danger)) bottom right / 50% 50% no-repeat;
         }
 
+        /* the script puts each theme's colors on its li, so the label takes the page's own text color */
         #themeName,
         .themeName {
             font-size: 0.8rem;
-            color: var(--text-soft);
+            color: inherit;
+            opacity: 0.8;
             text-transform: capitalize;
         }
 
@@ -706,8 +807,8 @@
         }
 
         .saveChangesButton {
-            grid-column: 1 / -1;
-            justify-self: center;
+            grid-column: 2;
+            justify-self: end;
             min-width: 12rem;
             background: var(--accent);
             border-color: var(--accent);
@@ -785,6 +886,18 @@
                 max-width: none;
             }
 
+            #invalidScreen.active {
+                row-gap: 0.4rem;
+            }
+
+            #invalidScreen > h1 {
+                font-size: clamp(1.4rem, min(5vw, 8vh), 2.5rem);
+            }
+
+            #invalidScreen > h2 {
+                font-size: 0.95rem;
+            }
+
         }
 
         /* ================================
@@ -792,7 +905,7 @@
            A phone held upright: everything stacks.
         ================================= */
 
-        @media (max-width: 640px) {
+        @media (max-width: 520px) {
 
             .tabsContainer li {
                 flex-basis: 8rem;
@@ -820,6 +933,10 @@
                 grid-row: auto;
             }
 
+            #introScreen > h3 {
+                margin-bottom: 0.75rem;
+            }
+
             #homeScreen .webSiteContainer {
                 grid-template-columns: 3rem minmax(0, 1fr) 3.5rem;
             }
@@ -832,8 +949,16 @@
                 grid-template-columns: minmax(0, 1fr);
             }
 
+            #goBack {
+                justify-self: start;
+            }
+
             #customlizeScreen.active {
                 grid-template-columns: minmax(0, 1fr);
+            }
+
+            .saveChangesButton {
+                grid-column: 1;
             }
 
         }
@@ -928,6 +1053,7 @@
           <button class="addButton">+</button>
           <button class="previousPage">←</button>
           <button class="unPreviousPage">→</button>
+          <button class="refreshButton" title="Refresh">↻</button>
           <button class="emergencyExitButton">Emergency Exit</button>
        </div> <!-- class="topBar" -->
 
@@ -941,6 +1067,7 @@
     ================================== -->
 
     <div id="homeScreen" class="screen">
+        <button class="cookieButton" aria-pressed="false" title="Cookies are off. Click to turn them on.">🍪</button>
         <div class="webSiteContainer">
             <h2>Welcome to Locked In Browser</h2>
             <h4>Enter a URL to start for completing your task</h4>
@@ -954,7 +1081,7 @@
          <button id="scrollRight">→</button>
 
 
-            <button class="customlizeButton">Customize</button>
+            <button class="customlizeButton">Customize Browser</button>
          </div>
          
        
@@ -967,9 +1094,13 @@
      Website Screen
     ================================== -->
     <div id="webviewScreen" class="screen">
-     
+
 
          <div class="webSiteContainer">
+             <!-- shown while the active tab's website loads -->
+             <div class="loadingCover" role="status" hidden>
+                 <div class="loadingBox"><span class="spinner"></span> Loading...</div>
+             </div>
          </div>
     </div>
 
@@ -991,6 +1122,7 @@
     INVALID SCREEN
     ================================== -->
 <div id="invalidScreen" class="screen">
+    <button class="cookieButton" aria-pressed="false" title="Cookies are off. Click to turn them on.">🍪</button>
     <h1>Invalid URL or unsafe URL</h1>
     <h2>Type a new URL</h2>
      <input type="text" class="urlInput" placeholder="enter URL here">
@@ -1053,19 +1185,23 @@ EMERGENCY EXIT SCREEN
 
         // The row of buttons on the home and invalid screens.
         // These are also the only sites allowed during a session.
+        // alsoAllow: other domains the site redirects to or signs in through
         const COMMON_SITES = [
-            { name: "Google Docs", url: "https://docs.google.com" },
             { name: "Google Classroom", url: "https://classroom.google.com" },
-            { name: "Wikipedia", url: "https://www.wikipedia.org" },
-            { name: "Khan Academy", url: "https://www.khanacademy.org" },
-            { name: "Desmos", url: "https://www.desmos.com" },
-            { name: "Quizlet", url: "https://quizlet.com" },
-            { name: "Britannica", url: "https://www.britannica.com" },
-            { name: "Wolfram Alpha", url: "https://www.wolframalpha.com" },
-            { name: "Duolingo", url: "https://www.duolingo.com" },
+            { name: "Google Slides", url: "https://slides.google.com" },
+            { name: "Google Docs", url: "https://docs.google.com" },
+            { name: "Google Drive", url: "https://drive.google.com" },
+            { name: "Kami", url: "https://web.kamihq.com/web/viewer.html" },
             { name: "Canva", url: "https://www.canva.com" },
+            { name: "CNUSD Instructure", url: "https://cnusd.instructure.com" },
+            { name: "Outlook", url: "https://outlook.com",
+              alsoAllow: ["live.com", "office.com", "office365.com", "microsoftonline.com", "cloud.microsoft"] },
+            { name: "Wikipedia", url: "https://www.wikipedia.org" },
+            { name: "AP Collegeboard", url: "https://apstudents.collegeboard.org" },
             { name: "Code.org", url: "https://code.org" },
-            { name: "GitHub", url: "https://github.com" }
+            { name: "Project STEM", url: "https://www.projectstem.org" },
+            { name: "Eleanor Roosevelt High School", url: "https://erhs.cnusd.k12.ca.us" },
+            { name: "VEX CodeV5", url: "https://codev5.vex.com" }
         ];
 
         // Themes for the Customize screen. Each one changes the CSS variables in :root
@@ -1112,11 +1248,14 @@ EMERGENCY EXIT SCREEN
         let timeRemaining = 0;     // seconds left in the session
         let timerInterval = null;
         let exitCode = "";         // the parent's emergency exit code
+        let cookiesOn = false;     // do the websites get to save and send cookies (the cookie button)
+        let soundTheme = "default"; // which theme's sound the buttons make (set by applyLook)
 
-        // Each tab: { li, nameButton, state, frame, history, index, moving }
+        // Each tab: { li, nameButton, state, frame, history, index, moving, loading }
         //   state   "home", "web", "blocked" or "invalid"
         //   frame   the tab's own iframe (made the first time it opens a website)
         //   history the pages it opened, index = the one showing now (for ← and →)
+        //   loading the website is still loading, so it can't be used yet
         let tabs = [];
         let activeTab = null;
 
@@ -1125,6 +1264,7 @@ EMERGENCY EXIT SCREEN
         const topBar = document.querySelector(".topBar");
         const tabsContainer = document.querySelector(".tabsContainer");
         const webContainer = document.querySelector("#webviewScreen .webSiteContainer");
+        const loadingCover = document.querySelector(".loadingCover");
 
         // =================================
         // SCREEN MANAGEMENT
@@ -1154,6 +1294,7 @@ EMERGENCY EXIT SCREEN
                     tab.frame.hidden = tab !== activeTab;
                 }
             });
+            loadingCover.hidden = !activeTab.loading;
             showScreen(SCREEN_FOR_STATE[activeTab.state]);
         }
 
@@ -1185,6 +1326,11 @@ EMERGENCY EXIT SCREEN
                     alert("The Java server is not running, so sites can't be loaded.");
                 });
 
+            // Cookies are off at the start of every session
+            cookiesOn = false;
+            showCookieButtons();
+            fetch(JAVA + "/cookies", { method: "POST", body: "off" }).catch(function() {});
+
             fillCommonSites();
 
             // Open the bar at the top with one tab on the home screen
@@ -1215,14 +1361,20 @@ EMERGENCY EXIT SCREEN
             document.title = "Locked In - " + minutes + ":" + seconds + " left";
         }
 
-        // "docs.google.com" -> "google.com", so a site's login and other pages are allowed too
+        // "docs.google.com" -> "google.com", so a site's login and other pages are allowed too.
+        // A site's alsoAllow domains are added as they are.
         function allowedDomains() {
             const domains = [];
-            COMMON_SITES.forEach(function(site) {
-                const parts = new URL(site.url).hostname.split(".");
-                const domain = parts.slice(-2).join(".");
+            function add(domain) {
                 if (domains.indexOf(domain) === -1) {
                     domains.push(domain);
+                }
+            }
+            COMMON_SITES.forEach(function(site) {
+                const parts = new URL(site.url).hostname.split(".");
+                add(parts.slice(-2).join("."));
+                if (site.alsoAllow) {
+                    site.alsoAllow.forEach(add);
                 }
             });
             return domains;
@@ -1276,6 +1428,52 @@ EMERGENCY EXIT SCREEN
         });
 
         // =================================
+        // COOKIE BUTTON (home and invalid screens)
+        // =================================
+
+        // Both buttons turn cookies on or off for every tab: Java keeps one cookie jar
+        document.querySelectorAll(".cookieButton").forEach(function(button) {
+            button.addEventListener("click", function() {
+                setCookies(!cookiesOn);
+            });
+        });
+
+        // Tells Java to save and send the websites' cookies (or not). The buttons only change
+        // once Java has answered, so they never show something Java isn't doing.
+        async function setCookies(on) {
+            let body = "off";
+            if (on) {
+                body = "on";
+            }
+
+            try {
+                const response = await fetch(JAVA + "/cookies", { method: "POST", body: body });
+                if (!response.ok) {
+                    throw new Error("Java said no");
+                }
+            } catch (error) {
+                alert("The Java server is not running, so cookies can't be changed.");
+                return;
+            }
+
+            cookiesOn = on;
+            showCookieButtons();
+        }
+
+        // Green and "on" when cookies are on, the page's color when they are off
+        function showCookieButtons() {
+            document.querySelectorAll(".cookieButton").forEach(function(button) {
+                button.classList.toggle("on", cookiesOn);
+                button.setAttribute("aria-pressed", String(cookiesOn));
+                if (cookiesOn) {
+                    button.title = "Cookies are on. Click to turn them off.";
+                } else {
+                    button.title = "Cookies are off. Click to turn them on.";
+                }
+            });
+        }
+
+        // =================================
         // TABS (+ and x buttons)
         // =================================
 
@@ -1303,7 +1501,8 @@ EMERGENCY EXIT SCREEN
                 frame: null,
                 history: [],
                 index: -1,
-                moving: false
+                moving: false,
+                loading: false
             };
             tabs.push(tab);
 
@@ -1361,7 +1560,15 @@ EMERGENCY EXIT SCREEN
             const input = button.parentElement.querySelector(".urlInput");
 
             button.addEventListener("click", function() {
-                askJavaToGetWebsite(input.value.trim());
+                const text = input.value.trim();
+                const url = commonSiteUrl(text);
+
+                if (url) {
+                    // One of the common sites: go straight to it, no check needed
+                    displayWebsite(activeTab, url);
+                } else {
+                    askJavaToGetWebsite(text);
+                }
             });
             input.addEventListener("keydown", function(event) {
                 if (event.key === "Enter") {
@@ -1370,12 +1577,35 @@ EMERGENCY EXIT SCREEN
             });
         });
 
+        // What the user typed -> its full url if the domain is one of the COMMON_SITES
+        // (or a subdomain of one, ignoring "www."), otherwise null
+        function commonSiteUrl(text) {
+            if (text === "") return null;
+            if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(text)) {
+                text = "https://" + text;
+            }
+
+            let u;
+            try {
+                u = new URL(text);
+            } catch (error) {
+                return null;
+            }
+            if (u.protocol !== "http:" && u.protocol !== "https:") return null;
+
+            const host = u.hostname.toLowerCase().replace(/^www\./, "");
+            for (const site of COMMON_SITES) {
+                const siteHost = new URL(site.url).hostname.toLowerCase().replace(/^www\./, "");
+                if (host === siteHost || host.endsWith("." + siteHost)) {
+                    return text;
+                }
+            }
+            return null;
+        }
+
         // Asks Java if the url is valid and allowed, then shows it or the matching error screen
         async function askJavaToGetWebsite(url) {
             const tab = activeTab; // the user may switch tabs while Java answers
-
-            // A new URL: Java deletes the pages it stored for the last site
-            clearStoredPages();
 
             let verdict = "invalid";
             try {
@@ -1416,11 +1646,16 @@ EMERGENCY EXIT SCREEN
                 // The site runs on Java's origin, not this page's, so it cannot
                 // read our localStorage or DOM
                 tab.frame.setAttribute("sandbox", "allow-scripts allow-forms allow-same-origin");
+                // The load event means the page has finished loading: now it can be used
+                tab.frame.addEventListener("load", function() {
+                    setLoading(tab, false);
+                });
                 webContainer.append(tab.frame);
             }
-            tab.frame.src =
+            loadInFrame(tab,
                 JAVA + "/p/" + u.protocol.slice(0, -1) + "/" +
-                u.host + u.pathname + u.search + u.hash;
+                u.host + u.pathname + u.search + u.hash,
+                tab.history[tab.index]);
 
             tab.state = "web";
             setTabName(tab, u.hostname);
@@ -1429,10 +1664,56 @@ EMERGENCY EXIT SCREEN
             }
         }
 
-        // Every page that opens in a tab tells us its address and title (Java's SHIM sends it)
+        // Opens url in the tab's iframe, and locks the website until it has loaded. Returns false
+        // when only the #fragment changes: the page just scrolls, so nothing loads (and a
+        // tab that was locked is unlocked, since no load event will come).
+        // currentUrl: the page the iframe shows now.
+        function loadInFrame(tab, url, currentUrl) {
+            tab.frame.src = url;
+            if (onlyFragmentChanges(currentUrl, url)) {
+                setLoading(tab, false);
+                return false;
+            }
+            setLoading(tab, true);
+            return true;
+        }
+
+        // Is url the same page as currentUrl, with a #fragment? Then the browser only scrolls to it.
+        function onlyFragmentChanges(currentUrl, url) {
+            if (!currentUrl || url.indexOf("#") === -1) return false;
+            const a = new URL(currentUrl);
+            const b = new URL(url);
+            a.hash = "";
+            b.hash = "";
+            return a.href === b.href;
+        }
+
+        // While a tab's website is loading, nothing on it can be clicked or typed into. The cover
+        // blocks the mouse (and shows "Loading..."), and inert blocks the keyboard.
+        // A link whose answer never becomes a page (a download the sandbox blocks, a 204) sends no
+        // load event, so the tab unlocks on its own after LOADING_TIMEOUT milliseconds.
+        const LOADING_TIMEOUT = 20000;
+
+        function setLoading(tab, loading) {
+            clearTimeout(tab.loadingTimer);
+            if (loading) {
+                tab.loadingTimer = setTimeout(setLoading, LOADING_TIMEOUT, tab, false);
+            }
+            tab.loading = loading;
+            tab.frame.inert = loading;
+            if (tab === activeTab) {
+                loadingCover.hidden = !loading;
+            }
+        }
+
+        // Every page that opens in a tab tells us (Java's SHIM sends these):
+        //   loading  a link or form in the page is opening a new page: lock the tab
+        //   page     its address and title can be read
+        //   loaded   its load event: unlock the tab (the iframe's own load event does that too)
         window.addEventListener("message", function(event) {
             const data = event.data;
-            if (!data || data.cac !== "page" || typeof data.url !== "string") return;
+            if (!data || typeof data.url !== "string") return;
+            if (data.cac !== "loading" && data.cac !== "page" && data.cac !== "loaded") return;
 
             let tab = null;
             tabs.forEach(function(t) {
@@ -1441,6 +1722,14 @@ EMERGENCY EXIT SCREEN
                 }
             });
             if (!tab) return;
+
+            if (data.cac === "loading") {
+                setLoading(tab, true);
+                return;
+            }
+            if (data.cac === "loaded") {
+                setLoading(tab, false);
+            }
 
             if (typeof data.title === "string" && data.title.trim() !== "") {
                 setTabName(tab, data.title.trim());
@@ -1475,9 +1764,7 @@ EMERGENCY EXIT SCREEN
                 return;
             }
             if (tab.index > 0) {
-                tab.index--;
-                tab.moving = true;
-                tab.frame.src = tab.history[tab.index];
+                openHistoryEntry(tab, tab.index - 1);
             } else {
                 // Before the first page is the tab's home screen
                 tab.state = "home";
@@ -1498,11 +1785,33 @@ EMERGENCY EXIT SCREEN
                 return;
             }
             if (tab.index < tab.history.length - 1) {
-                tab.index++;
-                tab.moving = true;
-                tab.frame.src = tab.history[tab.index];
+                openHistoryEntry(tab, tab.index + 1);
             }
         });
+
+        // =================================
+        // REFRESH BUTTON
+        // =================================
+
+        // Loads the tab's page again. It also unlocks a tab stuck on "Loading..."
+        document.querySelector(".refreshButton").addEventListener("click", function() {
+            const tab = activeTab;
+            if (!tab || tab.state !== "web" || !tab.frame || tab.history.length === 0) return;
+
+            // Without the #fragment, or the browser would only scroll instead of reloading
+            const url = new URL(tab.history[tab.index]);
+            url.hash = "";
+            tab.moving = true; // the page message that follows is this entry, not a new page
+            loadInFrame(tab, url.href, null);
+        });
+
+        // Shows the history entry number place in the tab's iframe
+        function openHistoryEntry(tab, place) {
+            // moving: the page message that follows is this entry, not a new page. None follows
+            // when only the #fragment changed.
+            tab.moving = loadInFrame(tab, tab.history[place], tab.history[tab.index]);
+            tab.index = place;
+        }
 
         // =================================
         // BACK BUTTONS (blocked and invalid screens)
@@ -1524,6 +1833,8 @@ EMERGENCY EXIT SCREEN
 
         let chosenTheme = settings.theme;
         const themeList = document.getElementById("themes");
+        const fontSizeSlider = document.getElementById("fontSizeSlider");
+        const fontFamilyDropdown = document.getElementById("fontFamilyDropdown");
 
         // One swatch for each theme. Its colors come from the theme's variables.
         function fillThemes() {
@@ -1547,6 +1858,7 @@ EMERGENCY EXIT SCREEN
                 li.addEventListener("click", function() {
                     chosenTheme = name;
                     markChosenTheme();
+                    previewLook();
                 });
                 themeList.append(li);
             });
@@ -1561,24 +1873,28 @@ EMERGENCY EXIT SCREEN
         document.querySelector(".customlizeButton").addEventListener("click", function() {
             chosenTheme = settings.theme;
             markChosenTheme();
-            document.getElementById("fontSizeSlider").value = settings.fontSize;
-            document.getElementById("fontFamilyDropdown").value = settings.fontFamily;
+            fontSizeSlider.value = settings.fontSize;
+            fontFamilyDropdown.value = settings.fontFamily;
             showScreen("customlizeScreen");
         });
+
+        // Live preview: apply the look right away as the user adjusts a control,
+        // instead of waiting for "Save changes"
+        fontSizeSlider.addEventListener("input", previewLook);
+        fontFamilyDropdown.addEventListener("change", previewLook);
+
+        function previewLook() {
+            applyLook(chosenTheme, Number(fontSizeSlider.value), fontFamilyDropdown.value);
+        }
 
         // Save changes: change the look of the browser, then go back to the main screen
         document.querySelector(".saveChangesButton").addEventListener("click", function() {
             settings = {
                 theme: chosenTheme,
-                fontSize: Number(document.getElementById("fontSizeSlider").value),
-                fontFamily: document.getElementById("fontFamilyDropdown").value
+                fontSize: Number(fontSizeSlider.value),
+                fontFamily: fontFamilyDropdown.value
             };
             applySettings();
-            try {
-                localStorage.setItem("cacSettings", JSON.stringify(settings));
-            } catch (error) {
-                // storage is blocked: the settings last until the page closes
-            }
             if (activeTab) {
                 showActiveTab();
             } else {
@@ -1586,7 +1902,7 @@ EMERGENCY EXIT SCREEN
             }
         });
 
-        function applySettings() {
+        function applyLook(themeName, fontSize, fontFamily) {
             const root = document.documentElement.style;
 
             // Undo every theme, then use the chosen one
@@ -1595,26 +1911,144 @@ EMERGENCY EXIT SCREEN
                     root.removeProperty(variable);
                 });
             });
-            const theme = THEMES[settings.theme] || {};
+            const theme = THEMES[themeName] || {};
+            soundTheme = themeName; // the buttons sound like the theme on screen
             Object.keys(theme).forEach(function(variable) {
                 root.setProperty(variable, theme[variable]);
             });
 
-            root.setProperty("--font-size", settings.fontSize + "px");
-            root.setProperty("--font-family", "\"" + settings.fontFamily + "\", Arial, sans-serif");
+            root.setProperty("--font-size", fontSize + "px");
+            root.setProperty("--font-family", "\"" + fontFamily + "\", Arial, sans-serif");
         }
 
-        // Settings saved last time
-        try {
-            const saved = JSON.parse(localStorage.getItem("cacSettings"));
-            if (saved && THEMES[saved.theme]) {
-                settings = saved;
-            }
-        } catch (error) {
-            // nothing saved, or storage is blocked
+        function applySettings() {
+            applyLook(settings.theme, settings.fontSize, settings.fontFamily);
         }
+
+        // Every start begins with the default look; customizing it only lasts
+        // until main.html is reloaded or closed
         fillThemes();
+        markChosenTheme();
         applySettings();
+
+        // =================================
+        // SOUNDS
+        // Every button clicks with its theme's sound, made with the Web Audio API
+        // (no sound files). The Emergency Exit button has its own siren sound.
+        //   default  a regular click
+        //   dark     a low, deep thump
+        //   light    a high, crisp tick
+        //   sunset   a beep-boop
+        //   forest   rustling tree leaves
+        // =================================
+
+        let audio = null; // made on the first click: browsers only allow sound after the user clicks
+
+        function getAudio() {
+            if (!audio) {
+                audio = new AudioContext();
+            }
+            if (audio.state === "suspended") {
+                audio.resume();
+            }
+            return audio;
+        }
+
+        // One tone: wave type, pitch from startFreq to endFreq (Hz), starting at "start"
+        // seconds from now, lasting "length" seconds, fading out from "volume"
+        function playTone(type, startFreq, endFreq, start, length, volume) {
+            const ctx = getAudio();
+            const t = ctx.currentTime + start;
+
+            const osc = ctx.createOscillator();
+            osc.type = type;
+            osc.frequency.setValueAtTime(startFreq, t);
+            osc.frequency.exponentialRampToValueAtTime(endFreq, t + length);
+
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.exponentialRampToValueAtTime(volume, t + 0.005);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + length);
+
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(t);
+            osc.stop(t + length + 0.02);
+        }
+
+        // A burst of noise through a filter: filterType "highpass" or "bandpass" at freq (Hz)
+        function playNoise(filterType, freq, start, length, volume) {
+            const ctx = getAudio();
+            const t = ctx.currentTime + start;
+
+            const samples = Math.ceil(ctx.sampleRate * length);
+            const buffer = ctx.createBuffer(1, samples, ctx.sampleRate);
+            const data = buffer.getChannelData(0);
+            for (let i = 0; i < samples; i++) {
+                data[i] = Math.random() * 2 - 1;
+            }
+            const noise = ctx.createBufferSource();
+            noise.buffer = buffer;
+
+            const filter = ctx.createBiquadFilter();
+            filter.type = filterType;
+            filter.frequency.value = freq;
+
+            const gain = ctx.createGain();
+            gain.gain.setValueAtTime(0.0001, t);
+            gain.gain.exponentialRampToValueAtTime(volume, t + 0.01);
+            gain.gain.exponentialRampToValueAtTime(0.0001, t + length);
+
+            noise.connect(filter);
+            filter.connect(gain);
+            gain.connect(ctx.destination);
+            noise.start(t);
+        }
+
+        function playClickSound(theme) {
+            if (theme === "dark") {
+                playTone("sine", 140, 45, 0, 0.35, 0.5);       // deep falling thump
+                playTone("triangle", 70, 35, 0, 0.45, 0.25);   // a lower layer for depth
+            } else if (theme === "light") {
+                playTone("sine", 3200, 2600, 0, 0.06, 0.25);   // high, crisp tick
+                playNoise("highpass", 6000, 0, 0.02, 0.15);
+            } else if (theme === "sunset") {
+                playTone("square", 880, 880, 0, 0.09, 0.08);   // beep
+                playTone("square", 440, 440, 0.1, 0.12, 0.08); // boop
+            } else if (theme === "forest") {
+                // a few soft bursts of noise, like leaves rustling
+                for (let i = 0; i < 4; i++) {
+                    playNoise("bandpass", 2500 + Math.random() * 3000, i * 0.04 + Math.random() * 0.02, 0.12, 0.2);
+                }
+            } else {
+                playNoise("highpass", 2000, 0, 0.015, 0.35);  // regular click
+                playTone("square", 1800, 900, 0, 0.02, 0.05);
+            }
+        }
+
+        // A short siren that rises and falls twice
+        function playEmergencySound() {
+            for (let i = 0; i < 2; i++) {
+                playTone("sawtooth", 600, 1200, i * 0.4, 0.2, 0.12);
+                playTone("sawtooth", 1200, 600, i * 0.4 + 0.2, 0.2, 0.12);
+            }
+        }
+
+        // Bubble phase, so a theme swatch's own click handler has already switched the theme
+        // and the swatch plays the sound of the theme just picked
+        document.addEventListener("click", function(event) {
+            const button = event.target.closest("button, #themes li");
+            if (!button) return;
+            try {
+                if (button.classList.contains("emergencyExitButton")) {
+                    playEmergencySound();
+                } else {
+                    playClickSound(soundTheme);
+                }
+            } catch (error) {
+                // no sound on this browser: the buttons still work
+            }
+        });
 
         // =================================
         // EMERGENCY EXIT
@@ -1657,8 +2091,10 @@ EMERGENCY EXIT SCREEN
             timerInterval = null;
 
             // Beacons are still sent while the page closes
-            clearStoredPages();
             navigator.sendBeacon(JAVA + "/block", "");   // empty list: no more limits
+            navigator.sendBeacon(JAVA + "/cookies", "off");
+            cookiesOn = false;
+            showCookieButtons();
             if (timeUp) {
                 navigator.sendBeacon(JAVA + "/shutdown");
             }
@@ -1682,18 +2118,6 @@ EMERGENCY EXIT SCREEN
                 "Session ended. You can close this browser now.";
             showScreen("introScreen");
         }
-
-        // =================================
-        // STORED PAGES
-        // =================================
-
-        // Tells Java to delete every connected page it stored ahead of time
-        function clearStoredPages() {
-            navigator.sendBeacon(JAVA + "/__cac/clear");
-        }
-
-        // Closing the browser (or this tab) deletes them too
-        window.addEventListener("pagehide", clearStoredPages);
 
         // The common sites are listed even before a session starts
         fillCommonSites();
